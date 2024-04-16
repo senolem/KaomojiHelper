@@ -1,167 +1,193 @@
 import json
-import threading
-import keyboard
-import tkinter
+from pynput.keyboard import Key, Controller
+from PyQt6.QtWidgets import (
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QLabel,
+    QHBoxLayout,
+    QFrame,
+)
 
-class Search:
-	def __init__(self):
-		self.recent_kaomojis = []
-		self.results = []
-		self.current_page = 1
-		self.results_per_page = 10
-		self.max_recent_kaomojis = 100
+class KaomojiHelper(QWidget):
+    def __init__(self):
+        super().__init__()
+        # Data
+        self.recent_kaomojis: list[str] = []
+        self.results: list[str] = []
+        self.current_page: int = 1
+        self.results_per_page: int = 10
+        self.max_recent_kaomojis: int = 100
+        self.kaomojis = self.load()
+        
+        # GUI stuff
+        self.layout: QVBoxLayout
+        self.search_entry: QLineEdit
+        self.results_layout: QVBoxLayout
+        self.results_frame: QFrame
+        self.first_page_btn: QPushButton
+        self.prev_page_btn: QPushButton
+        self.last_page_btn: QPushButton
+        self.next_page_btn: QPushButton
+        self.results_label: QLabel
+        self.message_label: QLabel
 
-		self.kaomojis = self.load()
-		self.window = tkinter.Tk()
-		self.window.overrideredirect(True) # no window title bar
-		self.window.title('KaomojiHelper')
-		self.window.attributes('-topmost', True) # set at topmost
-		self.window.geometry('600x400')
-		self.window.configure(bg='black')
-		self.create_widgets()
+        self.setWindowTitle("KaomojiHelper")
+        self.setGeometry(100, 100, 600, 400)
+        self.setStyleSheet('background-color: #ccc;')
+        self.create_widgets()
+        
+        # For keyboard input
+        self.controller: Controller = Controller()
 
-		self.update()
-		self.window.rowconfigure(0, weight=1)
-		self.window.columnconfigure(0, weight=1)
+    def load(self):
+        with open('kaomojis.json', 'r', encoding='utf-8') as file:
+            return json.load(file)
+    
+    def search(self, query: str):
+        self.results = []
+        for kaomoji, info in self.kaomojis.items():
+            if query.lower() in ' '.join(info['original_tags']).lower():
+                self.results.append(kaomoji)
+        self.current_page = 1
+        self.update()
+    
+    def update(self):
+        start_index = (self.current_page - 1) * self.results_per_page
+        end_index = start_index + self.results_per_page
 
-	def load(self):
-		with open('kaomojis.json', 'r', encoding='utf-8') as file:
-			return json.load(file)
-	
-	def search(self, query):
-		self.results = []
-		for kaomoji, info in self.kaomojis.items():
-			if query.lower() in ' '.join(info['original_tags']).lower():
-				self.results.append(kaomoji)
-		self.current_page = 1
-		self.update()
-	
-	def update(self):
-		for widget in self.results_frame.winfo_children():
-			widget.destroy()
+        if not self.search_entry.text().strip():
+            if self.recent_kaomojis:
+                self.results = self.recent_kaomojis
+                displayed_results = self.results[-self.results_per_page:]
+            else:
+                self.results = list(self.kaomojis.keys())
+                displayed_results = self.results[start_index:end_index]
+        else:
+            if not self.results:
+                self.message_label.text = 'No kaomoji found with your search terms'
+                displayed_results = []
+            else:
+                displayed_results = self.results[start_index:end_index]
 
-		start_index = (self.current_page - 1) * self.results_per_page
-		end_index = start_index + self.results_per_page
+        self.update_results(displayed_results)
+        self.update_pages()
+    
+    def update_results(self, displayed_results: list[str]):
+        for btn in self.results_buttons:
+            btn.setVisible(False)
+            
+        for i, kaomoji in enumerate(displayed_results):
+            if i < self.results_per_page:
+                btn = self.results_buttons[i]
+                btn.setText(kaomoji)
+                btn.setVisible(True)
+                
+    def on_button_clicked(self):
+        button = self.sender()
+        if button:
+            kaomoji = button.text()
+            self.insert(kaomoji)
 
-		if not self.search_entry.get().strip():
-			if self.recent_kaomojis:
-				self.results = self.recent_kaomojis
-				displayed_results = self.results[-self.results_per_page:]
-			else:
-				self.results = list(self.kaomojis.keys())
-				displayed_results = self.results[start_index:end_index]
-		else:
-			if not self.results:
-				self.show_message('No kaomoji found with your search terms')
-				displayed_results = []
-			else:
-				displayed_results = self.results[start_index:end_index]
+    def insert(self, kaomoji: str):
+        self.hide()
+        self.controller.type(kaomoji)
 
-		self.update_results(displayed_results)
-		self.update_pages()
-	
-	def update_results(self, displayed_results):
-		for i, kaomoji in enumerate(displayed_results):
-			btn = tkinter.Button(self.results_frame, text=kaomoji, command=lambda k=kaomoji: self.insert(k))
-			btn.grid(row=i, column=0, sticky='ew')
+        recent_slice = self.recent_kaomojis[-self.results_per_page:]
+        if kaomoji not in recent_slice:
+            self.recent_kaomojis.append(kaomoji)
+        self.recent_kaomojis = self.recent_kaomojis[-self.max_recent_kaomojis:]
+        self.update()
 
-	def insert(self, kaomoji):
-		self.window.withdraw()
-		keyboard.write(kaomoji)
+    def create_widgets(self):
+        # Main layout
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
 
-		recent_slice = self.recent_kaomojis[-self.results_per_page:]
-		if kaomoji not in recent_slice:
-			self.recent_kaomojis.append(kaomoji)
-		self.recent_kaomojis = self.recent_kaomojis[-self.max_recent_kaomojis:]
-		self.update()
-	
-	def set_keybinds(self):
-		keyboard.add_hotkey('esc', lambda: self.window.withdraw())
-		keyboard.add_hotkey('k', lambda: self.focus())
-	
-	def create_widgets(self):
-		self.window.rowconfigure(0, weight=0)
-		self.window.rowconfigure(1, weight=1)
-		self.window.rowconfigure(2, weight=0)
-	
-		self.window.columnconfigure(0, weight=1)
-	
-		self.search_entry = tkinter.Entry(self.window, bg='black')
-		self.search_entry.grid(row=0, column=0, sticky='ew')
-		self.search_entry.bind('<KeyRelease>', lambda event: self.search(self.search_entry.get()))
+        # Search entry
+        self.search_entry = QLineEdit()
+        self.search_entry.setStyleSheet("background-color: white;")
+        self.search_entry.textChanged.connect(self.search)
+        self.layout.addWidget(self.search_entry)
 
-		self.results_frame = tkinter.Frame(self.window)
-		self.results_frame.grid(row=1, column=0, sticky='nsew')
-		self.results_frame.columnconfigure(0, weight=1)
+        # Search results
+        self.results_frame = QFrame()
+        self.results_layout = QVBoxLayout(self.results_frame)
+        self.layout.addWidget(self.results_frame)
+        
+        self.results_buttons = [QPushButton() for _ in range(self.results_per_page)]
+        for btn in self.results_buttons:
+            btn.setStyleSheet('background-color: white;')
+            btn.clicked.connect(self.on_button_clicked)
+            self.results_layout.addWidget(btn)
 
-		self.pages_frame = tkinter.Frame(self.window)
-		self.pages_frame.grid(row=2, column=0, sticky='nsew')
-		self.pages_frame.columnconfigure(2, weight=1)
+        # Pages controls
+        self.pages_frame = QHBoxLayout()
+        self.layout.addLayout(self.pages_frame)
 
-	def focus(self):
-		self.window.deiconify()
-		self.search_entry.focus()
-	
-	def update_pages(self):
-		total_results = len(self.results)
+        self.first_page_btn = QPushButton('<<')
+        self.first_page_btn.clicked.connect(self.first_page)
+        self.pages_frame.addWidget(self.first_page_btn)
 
-		for widget in self.pages_frame.winfo_children():
-			widget.destroy()
+        self.prev_page_btn = QPushButton('<')
+        self.prev_page_btn.clicked.connect(self.prev_page)
+        self.pages_frame.addWidget(self.prev_page_btn)
 
-		if not self.results:
-			return
+        self.next_page_btn = QPushButton('>')
+        self.next_page_btn.clicked.connect(self.next_page)
+        self.pages_frame.addWidget(self.next_page_btn)
 
-		start_index = (self.current_page - 1) * self.results_per_page + 1
-		end_index = min(start_index + self.results_per_page - 1, total_results)
+        self.last_page_btn = QPushButton('>>')
+        self.last_page_btn.clicked.connect(self.last_page)
+        self.pages_frame.addWidget(self.last_page_btn)
 
-		self.pages_frame.grid(row=2, column=0, sticky='nsew')
+        # Search results label
+        self.results_label = QLabel('0-0 results | 0 (total)')
+        self.pages_frame.addWidget(self.results_label)
 
-		first_btn = tkinter.Button(self.pages_frame, text='<<', command=self.first_page)
-		first_btn.grid(row=0, column=0, sticky='ew')
+        # Message
+        self.message_label = QLabel()
+        self.results_layout.addWidget(self.message_label)
 
-		prev_btn = tkinter.Button(self.pages_frame, text='<', command=self.prev_page)
-		prev_btn.grid(row=0, column=1, sticky='ew')
+    def update_pages(self):
+        total_results = len(self.results)
 
-		page_label = tkinter.Label(self.pages_frame, text=f'{start_index}-{end_index} results | {total_results} (total)')
-		page_label.grid(row=0, column=2, sticky='ew')
+        if not self.results:
+            return
 
-		next_btn = tkinter.Button(self.pages_frame, text='>', command=self.next_page)
-		next_btn.grid(row=0, column=3, sticky='ew')
+        start_index = (self.current_page - 1) * self.results_per_page + 1
+        end_index = min(start_index + self.results_per_page - 1, total_results)
 
-		last_btn = tkinter.Button(self.pages_frame, text='>>', command=self.last_page)
-		last_btn.grid(row=0, column=4, sticky='ew')
+        self.results_label.setText(f'{start_index}-{end_index} results | {total_results} (total)')
 
-	def prev_page(self):
-		if self.current_page > 1:
-			self.current_page -= 1
-			self.update()
+    def prev_page(self):
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.update()
 
-	def next_page(self):
-		total_pages = (len(self.results) + self.results_per_page - 1) // self.results_per_page
-		if self.current_page < total_pages:
-			self.current_page += 1
-			self.update()
+    def next_page(self):
+        total_pages = (len(self.results) + self.results_per_page - 1) // self.results_per_page
+        if self.current_page < total_pages:
+            self.current_page += 1
+            self.update()
 
-	def first_page(self):
-		if self.current_page != 1:
-			self.current_page = 1
-			self.update()
+    def first_page(self):
+        if self.current_page != 1:
+            self.current_page = 1
+            self.update()
 
-	def last_page(self):
-		total_results = len(self.results)
-		total_pages = (total_results + self.results_per_page - 1) // self.results_per_page
-		if self.current_page != total_pages:
-			self.current_page = total_pages
-			self.update()
-	
-	def show_message(self, text):
-		self.message = tkinter.Label(self.results_frame, text=text)
-		self.message.grid(row=0, column=0, sticky='ew')
-
-	def run(self):
-		self.window.mainloop()
+    def last_page(self):
+        total_results = len(self.results)
+        total_pages = (total_results + self.results_per_page - 1) // self.results_per_page
+        if self.current_page != total_pages:
+            self.current_page = total_pages
+            self.update()
 
 if __name__ == '__main__':
-	search = Search()
-	search.run()
-		
+    app = QApplication([])
+    kaomojiHelper = KaomojiHelper()
+    kaomojiHelper.show()
+    app.exec()
+        
