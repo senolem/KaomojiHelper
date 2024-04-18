@@ -137,7 +137,6 @@ class KaomojiHelper(QWidget):
         # Title
         self.title_label = QLabel('All kaomojis')
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.set
         self.layout.addWidget(self.title_label)
 
         # Search results
