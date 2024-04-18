@@ -1,5 +1,5 @@
 import json
-from pynput.keyboard import Key, Controller
+from pynput import keyboard
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -9,9 +9,21 @@ from PyQt6.QtWidgets import (
     QLabel,
     QHBoxLayout,
     QFrame,
+    QGraphicsEffect,
 )
+from PyQt6.QtCore import Qt, pyqtSignal
+from enum import Enum
 
 class KaomojiHelper(QWidget):
+    
+    class Keybinds(Enum):
+        SHOW = 1
+        HIDE = 2
+        PREV = 3
+        NEXT = 4
+
+    keyboard_signal = pyqtSignal(Keybinds) # signal for keybinds callbacks to be executed in main thread instead of keyboard monitoring thread
+
     def __init__(self):
         super().__init__()
         # Data
@@ -25,6 +37,8 @@ class KaomojiHelper(QWidget):
         # GUI stuff
         self.layout: QVBoxLayout
         self.search_entry: QLineEdit
+        self.title_label: QLabel
+        self.message_label: QLabel
         self.results_layout: QVBoxLayout
         self.results_frame: QFrame
         self.first_page_btn: QPushButton
@@ -32,15 +46,16 @@ class KaomojiHelper(QWidget):
         self.last_page_btn: QPushButton
         self.next_page_btn: QPushButton
         self.results_label: QLabel
-        self.message_label: QLabel
 
         self.setWindowTitle("KaomojiHelper")
         self.setGeometry(100, 100, 600, 400)
-        self.setStyleSheet('background-color: #ccc;')
         self.create_widgets()
         
-        # For keyboard input
-        self.controller: Controller = Controller()
+        # For keyboard input and monitoring
+        self.controller: keyboard.Controller = keyboard.Controller()
+        self.listener: keyboard.Listener = keyboard.Listener(on_release=self.on_release)
+        self.listener.start()
+        self.keyboard_signal.connect(self.control_gui)
 
     def load(self):
         with open('kaomojis.json', 'r', encoding='utf-8') as file:
@@ -55,19 +70,24 @@ class KaomojiHelper(QWidget):
         self.update()
     
     def update(self):
+        self.message_label.setVisible(False)
         start_index = (self.current_page - 1) * self.results_per_page
         end_index = start_index + self.results_per_page
 
         if not self.search_entry.text().strip():
             if self.recent_kaomojis:
+                self.title_label.setText('Recently used')
                 self.results = self.recent_kaomojis
                 displayed_results = self.results[-self.results_per_page:]
             else:
+                self.title_label.setText('All kaomojis')
                 self.results = list(self.kaomojis.keys())
                 displayed_results = self.results[start_index:end_index]
         else:
+            self.title_label.setText('Search results')
             if not self.results:
-                self.message_label.text = 'No kaomoji found with your search terms'
+                self.message_label.setText('No kaomoji found with your search terms')
+                self.message_label.setVisible(True)
                 displayed_results = []
             else:
                 displayed_results = self.results[start_index:end_index]
@@ -92,6 +112,9 @@ class KaomojiHelper(QWidget):
             self.insert(kaomoji)
 
     def insert(self, kaomoji: str):
+        if not kaomoji.strip():
+            return
+
         self.hide()
         self.controller.type(kaomoji)
 
@@ -108,9 +131,14 @@ class KaomojiHelper(QWidget):
 
         # Search entry
         self.search_entry = QLineEdit()
-        self.search_entry.setStyleSheet("background-color: white;")
         self.search_entry.textChanged.connect(self.search)
         self.layout.addWidget(self.search_entry)
+        
+        # Title
+        self.title_label = QLabel('All kaomojis')
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.set
+        self.layout.addWidget(self.title_label)
 
         # Search results
         self.results_frame = QFrame()
@@ -119,7 +147,6 @@ class KaomojiHelper(QWidget):
         
         self.results_buttons = [QPushButton() for _ in range(self.results_per_page)]
         for btn in self.results_buttons:
-            btn.setStyleSheet('background-color: white;')
             btn.clicked.connect(self.on_button_clicked)
             self.results_layout.addWidget(btn)
 
@@ -134,6 +161,9 @@ class KaomojiHelper(QWidget):
         self.prev_page_btn = QPushButton('<')
         self.prev_page_btn.clicked.connect(self.prev_page)
         self.pages_frame.addWidget(self.prev_page_btn)
+        
+        self.results_label = QLabel('0-0 results | 0 (total)')
+        self.pages_frame.addWidget(self.results_label)
 
         self.next_page_btn = QPushButton('>')
         self.next_page_btn.clicked.connect(self.next_page)
@@ -142,14 +172,15 @@ class KaomojiHelper(QWidget):
         self.last_page_btn = QPushButton('>>')
         self.last_page_btn.clicked.connect(self.last_page)
         self.pages_frame.addWidget(self.last_page_btn)
-
-        # Search results label
-        self.results_label = QLabel('0-0 results | 0 (total)')
-        self.pages_frame.addWidget(self.results_label)
-
+        
         # Message
         self.message_label = QLabel()
+        self.message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.message_label.setVisible(False)
         self.results_layout.addWidget(self.message_label)
+        
+        # Update list at launch
+        self.update()
 
     def update_pages(self):
         total_results = len(self.results)
@@ -184,10 +215,40 @@ class KaomojiHelper(QWidget):
         if self.current_page != total_pages:
             self.current_page = total_pages
             self.update()
+            
+    def control_gui(self, key: Keybinds):
+        if key == self.Keybinds.SHOW:
+            self.show()
+        if key == self.Keybinds.HIDE:
+            self.hide()
+        if key == self.Keybinds.PREV:
+            self.prev_page()
+        if key == self.Keybinds.NEXT:
+            self.next_page()
+    
+    def on_release(self, key: keyboard.Key):
+        if hasattr(key, 'char'):
+            if (key.char == 'k'):
+                self.keyboard_signal.emit(self.Keybinds.SHOW)
+        if key == keyboard.Key.esc:
+            self.keyboard_signal.emit(self.Keybinds.HIDE)
+        if key == keyboard.Key.left:
+            self.keyboard_signal.emit(self.Keybinds.PREV)
+        if key == keyboard.Key.right:
+            self.keyboard_signal.emit(self.Keybinds.NEXT)
+
+    def center(self):
+        frame_geo = self.frameGeometry()
+        screen = self.window().windowHandle().screen()
+        center_loc = screen.geometry().center()
+        frame_geo.moveCenter(center_loc)
+        self.move(frame_geo.topLeft())
+            
 
 if __name__ == '__main__':
     app = QApplication([])
     kaomojiHelper = KaomojiHelper()
     kaomojiHelper.show()
+    kaomojiHelper.center()
     app.exec()
         
