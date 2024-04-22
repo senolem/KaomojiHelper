@@ -1,0 +1,26 @@
+<RCC>
+  <qresource prefix="favorite">
+    <file>favorite.png</file>
+  </qresource>
+  <qresource prefix="first">
+    <file>first.png</file>
+  </qresource>
+  <qresource prefix="last">
+    <file>last.png</file>
+  </qresource>
+  <qresource prefix="previous">
+    <file>previous.png</file>
+  </qresource>
+  <qresource prefix="next">
+    <file>next.png</file>
+  </qresource>
+  <qresource prefix="settings">
+    <file>settings.png</file>
+  </qresource>
+  <qresource prefix="search">
+    <file>search.png</file>
+  </qresource>
+  <qresource prefix="recent">
+    <file>recent.png</file>
+  </qresource>
+</RCC>

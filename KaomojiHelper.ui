@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QVBoxLayout" name="MainVerticalLayout">
      <property name="spacing">
       <number>6</number>
      </property>
@@ -46,57 +46,177 @@
         <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>0</number>
        </property>
+       <widget class="QWidget" name="SearchTab">
+        <attribute name="icon">
+         <iconset resource="resources/resources.qrc">
+          <normaloff>:/search/search.png</normaloff>:/search/search.png</iconset>
+        </attribute>
+        <attribute name="title">
+         <string>Search</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <layout class="QVBoxLayout" name="SearchVerticalLayout">
+           <item>
+            <widget class="QListView" name="SearchListView"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="SearchHorizontalLayout">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="SearchFirstButton">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/first/first.png</normaloff>:/first/first.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="SearchPreviousButton">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/previous/previous.png</normaloff>:/previous/previous.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="SearchStatusLabel">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>24</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>0-0 results | 0 (total)</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="SearchNextButton">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/next/next.png</normaloff>:/next/next.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="SearchLastButton">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/last/last.png</normaloff>:/last/last.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="RecentlyUsedTab">
+        <attribute name="icon">
+         <iconset resource="resources/resources.qrc">
+          <normaloff>:/recent/recent.png</normaloff>:/recent/recent.png</iconset>
+        </attribute>
         <attribute name="title">
          <string>Recently used</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
+          <layout class="QVBoxLayout" name="RecentlyUsedVerticalLayout">
            <item>
-            <widget class="QListView" name="listView_2"/>
+            <widget class="QListView" name="RecentlyUsedListView"/>
            </item>
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <layout class="QHBoxLayout" name="RecentlyUsedHorizontalLayout">
            <property name="spacing">
             <number>8</number>
            </property>
            <item>
             <widget class="QPushButton" name="RecentlyUsedFirstButton">
              <property name="text">
-              <string>First</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/first/first.png</normaloff>:/first/first.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="RecentlyUsedPreviousButton">
              <property name="text">
-              <string>Previous</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/previous/previous.png</normaloff>:/previous/previous.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="RecentlyUsedStatusLabel">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>24</height>
+              </size>
+             </property>
              <property name="text">
               <string>0-0 results | 0 (total)</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="RecentlyUsedNextButton">
              <property name="text">
-              <string>Next</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/next/next.png</normaloff>:/next/next.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="RecentlyUsedLastButton">
              <property name="text">
-              <string>Last</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/last/last.png</normaloff>:/last/last.png</iconset>
              </property>
             </widget>
            </item>
@@ -105,110 +225,83 @@
         </layout>
        </widget>
        <widget class="QWidget" name="FavoritesTab">
+        <attribute name="icon">
+         <iconset resource="resources/resources.qrc">
+          <normaloff>:/favorite/favorite.png</normaloff>:/favorite/favorite.png</iconset>
+        </attribute>
         <attribute name="title">
          <string>Favorites</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <layout class="QVBoxLayout" name="FavoritesVerticalLayout">
            <item>
-            <widget class="QListView" name="listView"/>
+            <widget class="QListView" name="FavoritesListView"/>
            </item>
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QHBoxLayout" name="FavoritesHorizontalLayout">
            <property name="spacing">
             <number>8</number>
            </property>
            <item>
             <widget class="QPushButton" name="FavoritesFirstButton">
              <property name="text">
-              <string>First</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/first/first.png</normaloff>:/first/first.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="FavoritesPreviousButton">
              <property name="text">
-              <string>Previous</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/previous/previous.png</normaloff>:/previous/previous.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="FavoritesStatusLabel">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>24</height>
+              </size>
+             </property>
              <property name="text">
               <string>0-0 results | 0 (total)</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="FavoritesNextButton">
              <property name="text">
-              <string>Next</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/next/next.png</normaloff>:/next/next.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="FavoritesLastButton">
              <property name="text">
-              <string>Last</string>
+              <string/>
              </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="SearchTab">
-        <attribute name="title">
-         <string>Search</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_8">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_7">
-           <item>
-            <widget class="QListView" name="listView_3"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <property name="spacing">
-            <number>8</number>
-           </property>
-           <item>
-            <widget class="QPushButton" name="SearchFirstButton">
-             <property name="text">
-              <string>First</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="SearchPreviousButton">
-             <property name="text">
-              <string>Previous</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="SearchStatusLabel">
-             <property name="text">
-              <string>0-0 results | 0 (total)</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="SearchNextButton">
-             <property name="text">
-              <string>Next</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="SearchLastButton">
-             <property name="text">
-              <string>Last</string>
+             <property name="icon">
+              <iconset resource="resources/resources.qrc">
+               <normaloff>:/last/last.png</normaloff>:/last/last.png</iconset>
              </property>
             </widget>
            </item>
@@ -217,12 +310,16 @@
         </layout>
        </widget>
        <widget class="QWidget" name="SettingsTab">
+        <attribute name="icon">
+         <iconset resource="resources/resources.qrc">
+          <normaloff>:/settings/settings.png</normaloff>:/settings/settings.png</iconset>
+        </attribute>
         <attribute name="title">
          <string>Settings</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_9">
          <item>
-          <widget class="QScrollArea" name="scrollArea">
+          <widget class="QScrollArea" name="SettingsScrollArea">
            <property name="frameShadow">
             <enum>QFrame::Sunken</enum>
            </property>
@@ -234,268 +331,289 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>554</width>
-              <height>304</height>
+              <width>537</width>
+              <height>540</height>
              </rect>
             </property>
-            <widget class="QGroupBox" name="groupBox">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>10</y>
-               <width>311</width>
-               <height>115</height>
-              </rect>
-             </property>
-             <property name="title">
-              <string>General</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <layout class="QVBoxLayout" name="verticalLayout_14">
+             <item>
+              <widget class="QGroupBox" name="GeneralGroupBox">
+               <property name="title">
+                <string>General</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
                 <item>
-                 <widget class="QLabel" name="label">
+                 <layout class="QHBoxLayout" name="KaomojiSetHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="KaomojiSetLabel">
+                    <property name="text">
+                     <string>Kaomoji set</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="KaomojiSetLineEdit">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="KaomojiSetButton">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="DefaultTabHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="DefaultTabLabel">
+                    <property name="text">
+                     <string>Default tab</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="DefaultTabComboBox"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="LaunchAtStartupCheckbox">
                   <property name="text">
-                   <string>Kaomoji set</string>
+                   <string>Launch at startup</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="lineEdit">
-                  <property name="readOnly">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="toolButton">
+                 <widget class="QCheckBox" name="ClearSearchEntryCheckbox">
                   <property name="text">
-                   <string>...</string>
+                   <string>Clear search entry upon clicking on a kaomoji</string>
                   </property>
                  </widget>
                 </item>
                </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_8">
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="AppearanceGroupBox">
+               <property name="title">
+                <string>Appearance</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_11">
                 <item>
-                 <widget class="QLabel" name="label_5">
-                  <property name="text">
-                   <string>Default tab</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="ThemeHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="ThemeLabel">
+                    <property name="text">
+                     <string>Theme</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="ThemeComboBox"/>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="comboBox_2"/>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkBox">
-                <property name="text">
-                 <string>Clear search entry upon clicking on a kaomoji</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="geometry">
-              <rect>
-               <x>310</x>
-               <y>20</y>
-               <width>260</width>
-               <height>120</height>
-              </rect>
-             </property>
-             <property name="title">
-              <string>Appearance</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
-                <item>
-                 <widget class="QLabel" name="label_2">
-                  <property name="text">
-                   <string>Theme</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="FontHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="FontLabel">
+                    <property name="text">
+                     <string>Font</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFontComboBox" name="FontComboBox"/>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="comboBox"/>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <item>
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>Font</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QFontComboBox" name="fontComboBox"/>
+                 <layout class="QHBoxLayout" name="FontColorHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="FontColorLabel">
+                    <property name="text">
+                     <string>Font color</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="FontColorButton">
+                    <property name="text">
+                     <string>Change color</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_7">
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="MiscellaneousGroupBox">
+               <property name="title">
+                <string>Miscellaneous</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_13">
                 <item>
-                 <widget class="QLabel" name="label_4">
-                  <property name="text">
-                   <string>Font color</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="ShowSoundHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="ShowSoundLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>74</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Show sound</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="ShowSoundLineEdit">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="ShowSoundButton">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButton">
-                  <property name="text">
-                   <string>Change color</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QGroupBox" name="groupBox_3">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>150</y>
-               <width>235</width>
-               <height>146</height>
-              </rect>
-             </property>
-             <property name="title">
-              <string>Keybinds</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_9">
-                <item>
-                 <widget class="QLabel" name="label_6">
-                  <property name="text">
-                   <string>Show window</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QKeySequenceEdit" name="keySequenceEdit"/>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_10">
-                <item>
-                 <widget class="QLabel" name="label_7">
-                  <property name="text">
-                   <string>Hide window</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QKeySequenceEdit" name="keySequenceEdit_2"/>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_11">
-                <item>
-                 <widget class="QLabel" name="label_8">
-                  <property name="text">
-                   <string>Previous page</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QKeySequenceEdit" name="keySequenceEdit_3"/>
+                 <layout class="QHBoxLayout" name="HideSoundHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="HideSoundLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>74</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Hide sound</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="HideSoundLineEdit">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="HideSoundButton">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_12">
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="KeybindsGroupBox">
+               <property name="title">
+                <string>Keybinds</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_10">
                 <item>
-                 <widget class="QLabel" name="label_9">
-                  <property name="text">
-                   <string>Next page</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="ShowWindowHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="ShowWindowLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>74</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Show window</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QKeySequenceEdit" name="ShowWindowKeySequence"/>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QKeySequenceEdit" name="keySequenceEdit_4"/>
+                 <layout class="QHBoxLayout" name="HideWindowHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="HideWindowLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>74</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Hide window</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QKeySequenceEdit" name="HideWindowKeySequence"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="PreviousPageHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="PreviousPageLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>74</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Previous page</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QKeySequenceEdit" name="PreviousPageKeySequence"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="NextPageHorizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="NextPageLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>74</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Next page</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QKeySequenceEdit" name="NextPageKeySequence"/>
+                  </item>
+                 </layout>
                 </item>
                </layout>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QGroupBox" name="groupBox_4">
-             <property name="geometry">
-              <rect>
-               <x>290</x>
-               <y>150</y>
-               <width>252</width>
-               <height>90</height>
-              </rect>
-             </property>
-             <property name="title">
-              <string>Miscellaneous</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_13">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_13">
-                <item>
-                 <widget class="QLabel" name="label_10">
-                  <property name="text">
-                   <string>Show sound</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="lineEdit_2">
-                  <property name="readOnly">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="toolButton_2">
-                  <property name="text">
-                   <string>...</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_14">
-                <item>
-                 <widget class="QLabel" name="label_11">
-                  <property name="text">
-                   <string>Hide sound</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="lineEdit_3">
-                  <property name="readOnly">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="toolButton_3">
-                  <property name="text">
-                   <string>...</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
@@ -507,6 +625,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

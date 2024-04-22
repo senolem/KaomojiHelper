@@ -1,2 +1,2 @@
 pynput
-PyQt6
+pyside6
