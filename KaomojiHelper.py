@@ -72,6 +72,10 @@ class MainWindow(QWidget):
 		self.mainUI.FavoritesNextButton.clicked.connect(self.nextPage)
 		self.mainUI.FavoritesLastButton.clicked.connect(self.lastPage)
 
+		if self.currentTab == Tabs.Search:
+			self.updateSearch()
+			self.updateStatus()
+
 	def onRelease(self, key: keyboard.Key):
 		if hasattr(key, 'char'):
 			if (key.char == 'k'):
@@ -97,12 +101,18 @@ class MainWindow(QWidget):
 		if self.currentTab == Tabs.Search:
 			if self.searchCurrentPage > 1:
 				self.searchCurrentPage -= 1
+				self.updateSearch()
+				self.updateStatus()
 		if self.currentTab == Tabs.RecentlyUsed:
 			if self.recentlyUsedCurrentPage > 1:
 				self.recentlyUsedCurrentPage -= 1
+				self.updateSearch()
+				self.updateStatus()
 		if self.currentTab == Tabs.Favorites:
 			if self.favoritesCurrentPage > 1:
 				self.favoritesCurrentPage -= 1
+				self.updateSearch()
+				self.updateStatus()
 
 	def nextPage(self):
 		total_pages = (len(self.searchResults) + self.kaomojiHelper.resultsPerPage - 1) // self.kaomojiHelper.resultsPerPage
@@ -127,10 +137,12 @@ class MainWindow(QWidget):
 
 	def searchChanged(self, text):
 		if self.currentTab != Tabs.Search:
+			self.currentTab = Tabs.Search
 			self.mainUI.TabsWidget.setCurrentIndex(Tabs.Search.value)
+		self.search(text)
 
 	def tabChanged(self, index):
-		self.currentTab = self.mainUI.TabsWidget.currentIndex()
+		self.currentTab = index
 
 	def search(self, query: str):
 		self.searchResults = []
@@ -163,14 +175,12 @@ class MainWindow(QWidget):
 		start_index = (self.searchCurrentPage - 1) * self.kaomojiHelper.resultsPerPage + 1
 		end_index = min(start_index + self.kaomojiHelper.resultsPerPage - 1, total_results)
 
-		resultsLabel: QLabel
 		if self.currentTab == Tabs.Search:
-			resultsLabel = self.mainUI.SearchStatusLabel
+			self.mainUI.SearchStatusLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
 		if self.currentTab == Tabs.RecentlyUsed:
-			resultsLabel = self.mainUI.RecentlyUsedStatusLabel
+			self.mainUI.RecentlyUsedStatusLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
 		if self.currentTab == Tabs.Favorites:
-			resultsLabel = self.mainUI.FavoritesStatusLabel
-		resultsLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
+			self.mainUI.FavoritesStatusLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
 
 	def center(self):
 		frameGeometry = self.frameGeometry()
