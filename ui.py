@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'KaomojiHelperMAMncK.ui'
+## Form generated from reading UI file 'KaomojiHelperosWMFt.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.4.3
 ##
@@ -16,10 +16,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFontComboBox,
-    QFrame, QGroupBox, QHBoxLayout, QKeySequenceEdit,
-    QLabel, QLineEdit, QListView, QPushButton,
-    QScrollArea, QSizePolicy, QTabWidget, QToolButton,
-    QVBoxLayout, QWidget)
+    QFrame, QGroupBox, QHBoxLayout, QHeaderView,
+    QKeySequenceEdit, QLabel, QLineEdit, QPushButton,
+    QScrollArea, QSizePolicy, QTabWidget, QTableView,
+    QToolButton, QVBoxLayout, QWidget)
 import resources
 
 class Ui_Form(object):
@@ -51,10 +51,10 @@ class Ui_Form(object):
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.SearchVerticalLayout = QVBoxLayout()
         self.SearchVerticalLayout.setObjectName(u"SearchVerticalLayout")
-        self.SearchListView = QListView(self.SearchTab)
-        self.SearchListView.setObjectName(u"SearchListView")
+        self.SearchTableView = QTableView(self.SearchTab)
+        self.SearchTableView.setObjectName(u"SearchTableView")
 
-        self.SearchVerticalLayout.addWidget(self.SearchListView)
+        self.SearchVerticalLayout.addWidget(self.SearchTableView)
 
 
         self.verticalLayout_8.addLayout(self.SearchVerticalLayout)
@@ -114,10 +114,10 @@ class Ui_Form(object):
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.RecentlyUsedVerticalLayout = QVBoxLayout()
         self.RecentlyUsedVerticalLayout.setObjectName(u"RecentlyUsedVerticalLayout")
-        self.RecentlyUsedListView = QListView(self.RecentlyUsedTab)
-        self.RecentlyUsedListView.setObjectName(u"RecentlyUsedListView")
+        self.RecentlyUsedTableView = QTableView(self.RecentlyUsedTab)
+        self.RecentlyUsedTableView.setObjectName(u"RecentlyUsedTableView")
 
-        self.RecentlyUsedVerticalLayout.addWidget(self.RecentlyUsedListView)
+        self.RecentlyUsedVerticalLayout.addWidget(self.RecentlyUsedTableView)
 
 
         self.verticalLayout_6.addLayout(self.RecentlyUsedVerticalLayout)
@@ -168,10 +168,10 @@ class Ui_Form(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.FavoritesVerticalLayout = QVBoxLayout()
         self.FavoritesVerticalLayout.setObjectName(u"FavoritesVerticalLayout")
-        self.FavoritesListView = QListView(self.FavoritesTab)
-        self.FavoritesListView.setObjectName(u"FavoritesListView")
+        self.FavoritesTableView = QTableView(self.FavoritesTab)
+        self.FavoritesTableView.setObjectName(u"FavoritesTableView")
 
-        self.FavoritesVerticalLayout.addWidget(self.FavoritesListView)
+        self.FavoritesVerticalLayout.addWidget(self.FavoritesTableView)
 
 
         self.verticalLayout_4.addLayout(self.FavoritesVerticalLayout)
@@ -226,7 +226,7 @@ class Ui_Form(object):
         self.SettingsScrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 537, 540))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 537, 533))
         self.verticalLayout_14 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.GeneralGroupBox = QGroupBox(self.scrollAreaWidgetContents)

@@ -60,7 +60,7 @@
          <item>
           <layout class="QVBoxLayout" name="SearchVerticalLayout">
            <item>
-            <widget class="QListView" name="SearchListView"/>
+            <widget class="QTableView" name="SearchTableView"/>
            </item>
           </layout>
          </item>
@@ -151,7 +151,7 @@
          <item>
           <layout class="QVBoxLayout" name="RecentlyUsedVerticalLayout">
            <item>
-            <widget class="QListView" name="RecentlyUsedListView"/>
+            <widget class="QTableView" name="RecentlyUsedTableView"/>
            </item>
           </layout>
          </item>
@@ -236,7 +236,7 @@
          <item>
           <layout class="QVBoxLayout" name="FavoritesVerticalLayout">
            <item>
-            <widget class="QListView" name="FavoritesListView"/>
+            <widget class="QTableView" name="FavoritesTableView"/>
            </item>
           </layout>
          </item>
@@ -332,7 +332,7 @@
               <x>0</x>
               <y>0</y>
               <width>537</width>
-              <height>540</height>
+              <height>533</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_14">

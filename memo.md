@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/47793748/qheaderview-stretch-or-resizetocontents-based-on-columns-content-size
