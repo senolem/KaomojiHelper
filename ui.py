@@ -81,7 +81,7 @@ class Ui_Form(object):
 
         self.SearchStatusLabel = QLabel(self.SearchTab)
         self.SearchStatusLabel.setObjectName(u"SearchStatusLabel")
-        self.SearchStatusLabel.setMinimumSize(QSize(150, 24))
+        self.SearchStatusLabel.setMinimumSize(QSize(180, 24))
         self.SearchStatusLabel.setAlignment(Qt.AlignCenter)
 
         self.SearchHorizontalLayout.addWidget(self.SearchStatusLabel)
@@ -139,7 +139,7 @@ class Ui_Form(object):
 
         self.RecentlyUsedStatusLabel = QLabel(self.RecentlyUsedTab)
         self.RecentlyUsedStatusLabel.setObjectName(u"RecentlyUsedStatusLabel")
-        self.RecentlyUsedStatusLabel.setMinimumSize(QSize(150, 24))
+        self.RecentlyUsedStatusLabel.setMinimumSize(QSize(180, 24))
         self.RecentlyUsedStatusLabel.setAlignment(Qt.AlignCenter)
 
         self.RecentlyUsedHorizontalLayout.addWidget(self.RecentlyUsedStatusLabel)
@@ -193,7 +193,7 @@ class Ui_Form(object):
 
         self.FavoritesStatusLabel = QLabel(self.FavoritesTab)
         self.FavoritesStatusLabel.setObjectName(u"FavoritesStatusLabel")
-        self.FavoritesStatusLabel.setMinimumSize(QSize(150, 24))
+        self.FavoritesStatusLabel.setMinimumSize(QSize(180, 24))
         self.FavoritesStatusLabel.setAlignment(Qt.AlignCenter)
 
         self.FavoritesHorizontalLayout.addWidget(self.FavoritesStatusLabel)

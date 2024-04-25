@@ -24,14 +24,23 @@ class KaomojiHelper(QObject):
     def __init__(self):
         super().__init__()
         # Data
-        self.recentKaomojis: list[str] = []
+        self.kaomojis = {}
+        self.recentKaomojis = {}
+        self.favorites = {}
         self.resultsPerPage: int = 10
         self.maxRecentKaomojis: int = 100
-        self.kaomojis = self.load()
 
     def load(self):
+        kaomojis = {}
         with open('kaomojis.json', 'r', encoding='utf-8') as file:
-            return json.load(file)
+            data = json.load(file)
+            for kaomoji, info in data.items():
+                tags = info.get('tags')
+                if isinstance(kaomoji, str) and isinstance(tags, list) and all(isinstance(tag, str) for tag in tags):
+                    kaomojis[kaomoji] = tags
+                else:
+                    raise ValueError("Invalid structure in JSON data.")
+        return kaomojis
 
 class MainWindow(QWidget):
     keyboardSignal = Signal(Keybinds) # signal for keybinds callbacks to be executed in main thread instead of keyboard monitoring thread
@@ -39,6 +48,7 @@ class MainWindow(QWidget):
     def __init__(self, kaomojiHelper: KaomojiHelper, parent=None):
         super(MainWindow, self).__init__(parent)
         self.mainUI = Ui_Form()
+        kaomojiHelper.kaomojis = kaomojiHelper.load()
         self.mainUI.setupUi(self)
 
         # Data
@@ -47,7 +57,9 @@ class MainWindow(QWidget):
         self.searchCurrentPage: int = 1
         self.recentlyUsedCurrentPage: int = 1
         self.favoritesCurrentPage: int = 1
-        self.searchResults: list[str] = []
+        self.searchResults: list[tuple[str, list[str]]] = []
+        self.recentlyUsedResults: list[tuple[str, list[str]]] = []
+        self.favoritesResults: list[tuple[str, list[str]]] = []
 
         # For keyboard input and monitoring
         self.controller: keyboard.Controller = keyboard.Controller()
@@ -58,13 +70,23 @@ class MainWindow(QWidget):
 
         # Search model
         self.searchModel = QStandardItemModel()
+        self.recentlyUsedModel = QStandardItemModel()
+        self.favoritesModel = QStandardItemModel()
         self.mainUI.SearchTableView.setModel(self.searchModel)
         self.mainUI.SearchTableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.mainUI.RecentlyUsedTableView.setModel(self.recentlyUsedModel)
+        self.mainUI.RecentlyUsedTableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.mainUI.FavoritesTableView.setModel(self.favoritesModel)
+        self.mainUI.FavoritesTableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
         # Delegate for table view actions
         self.tableViewDelegate = TableViewDelegate()
         self.mainUI.SearchTableView.verticalHeader().hide()
         self.mainUI.SearchTableView.setItemDelegate(self.tableViewDelegate)
+        self.mainUI.RecentlyUsedTableView.verticalHeader().hide()
+        self.mainUI.RecentlyUsedTableView.setItemDelegate(self.tableViewDelegate)
+        self.mainUI.FavoritesTableView.verticalHeader().hide()
+        self.mainUI.FavoritesTableView.setItemDelegate(self.tableViewDelegate)
         self.tableViewDelegate.kaomojiClicked.connect(self.insertKaomoji)
 
         # Connect UI
@@ -86,22 +108,23 @@ class MainWindow(QWidget):
         self.mainUI.FavoritesNextButton.clicked.connect(self.nextPage)
         self.mainUI.FavoritesLastButton.clicked.connect(self.lastPage)
 
-        if self.currentTab == Tabs.Search:
-            self.updateSearch()
-            self.updateStatus()
+        self.updateTab()
 
     def insertKaomoji(self, index):
-        kaomoji = self.searchModel.itemFromIndex(index).text()
-        if not kaomoji.strip():
-            return
-
+        model = self.getModel()
+    
+        kaomoji = model.itemFromIndex(index).text()
+    
         self.showMinimized()
         self.controller.type(kaomoji)
-
-        recent_slice = self.kaomojiHelper.recentKaomojis[-self.kaomojiHelper.resultsPerPage:]
-        if kaomoji not in recent_slice:
-            self.kaomojiHelper.recentKaomojis.append(kaomoji)
-        self.kaomojiHelper.recentKaomojis = self.kaomojiHelper.recentKaomojis[-self.kaomojiHelper.maxRecentKaomojis:]
+    
+        recentKaomojis = self.kaomojiHelper.recentKaomojis
+        if kaomoji not in recentKaomojis:
+            recentKaomojis[kaomoji] = self.kaomojiHelper.kaomojis.get(kaomoji, [])
+    
+        recentKaomojis = dict(list(recentKaomojis.items())[-self.kaomojiHelper.maxRecentKaomojis:])
+        self.kaomojiHelper.recentKaomojis = recentKaomojis
+        self.updateTab(Tabs.RecentlyUsed)
 
     def onRelease(self, key: keyboard.Key):
         if hasattr(key, 'char'):
@@ -125,110 +148,175 @@ class MainWindow(QWidget):
             self.nextPage()
 
     def previousPage(self):
-        if self.currentTab == Tabs.Search:
-            if self.searchCurrentPage > 1:
-                self.searchCurrentPage -= 1
-                self.updateSearch()
-                self.updateStatus()
-        if self.currentTab == Tabs.RecentlyUsed:
-            if self.recentlyUsedCurrentPage > 1:
-                self.recentlyUsedCurrentPage -= 1
-                self.updateSearch()
-                self.updateStatus()
-        if self.currentTab == Tabs.Favorites:
-            if self.favoritesCurrentPage > 1:
-                self.favoritesCurrentPage -= 1
-                self.updateSearch()
-                self.updateStatus()
+        currentPage = self.getCurrentPage()
+
+        if currentPage > 1:
+            self.setCurrentPage(currentPage - 1)
+            self.updateTab()
 
     def nextPage(self):
-        total_pages = (len(self.searchResults) + self.kaomojiHelper.resultsPerPage - 1) // self.kaomojiHelper.resultsPerPage
-        if self.searchCurrentPage < total_pages:
-            self.searchCurrentPage += 1
-            self.updateSearch()
-            self.updateStatus()
+        results = self.getResults()
+        totalPages = (len(results) + self.kaomojiHelper.resultsPerPage - 1) // self.kaomojiHelper.resultsPerPage
+        currentPage = self.getCurrentPage()
+
+        if currentPage < totalPages:
+            self.setCurrentPage(currentPage + 1)
+            self.updateTab()
 
     def firstPage(self):
-        if self.searchCurrentPage != 1:
-            self.searchCurrentPage = 1
-            self.updateSearch()
-            self.updateStatus()
+        currentPage = self.getCurrentPage()
+
+        if currentPage != 1:
+            self.setCurrentPage(1)
+            self.updateTab()
 
     def lastPage(self):
-        total_results = len(self.searchResults)
-        total_pages = (total_results + self.kaomojiHelper.resultsPerPage - 1) // self.kaomojiHelper.resultsPerPage
-        if self.searchCurrentPage != total_pages:
-            self.searchCurrentPage = total_pages
-            self.updateSearch()
-            self.updateStatus()
+        results = self.getResults()
+        totalResults = len(results)
+        totalPages = (totalResults + self.kaomojiHelper.resultsPerPage - 1) // self.kaomojiHelper.resultsPerPage
+        currentPage = self.getCurrentPage()
+
+        if currentPage != totalPages:
+            self.setCurrentPage(totalPages)
+            self.updateTab()
 
     def searchChanged(self, text):
-        if self.currentTab != Tabs.Search:
-            self.currentTab = Tabs.Search
-            self.mainUI.TabsWidget.setCurrentIndex(Tabs.Search.value)
         self.search(text)
 
     def tabChanged(self, index):
-        self.currentTab = index
+        self.currentTab = Tabs(index)
 
     def search(self, query: str):
-        self.searchResults = []
-        for kaomoji, info in self.kaomojiHelper.kaomojis.items():
-            if query.lower() in ' '.join(info['tags']).lower():
-                self.searchResults.append(kaomoji)
-        self.searchCurrentPage = 1
-        self.updateSearch()
-        self.updateStatus()
+        searchList = self.getSearchList()
+        results = self.getResults()
 
-    def updateSearch(self):
-        self.searchModel.clear()
+        results.clear()
+        for kaomoji, tags in searchList.items():
+            if query.lower() in ' '.join(tags).lower():
+                results.append((kaomoji, tags))
+        self.setCurrentPage(1)
+        self.updateTab()
 
-        start_index = (self.searchCurrentPage - 1) * self.kaomojiHelper.resultsPerPage
-        end_index = start_index + self.kaomojiHelper.resultsPerPage
+    def updateSearch(self, currentPage: int, tab=None):
+        results = self.getResults(tab)
+        model = self.getModel(tab)
+        model.clear()
+
+        searchList = self.getSearchList(tab)
+        startIndex = (currentPage - 1) * self.kaomojiHelper.resultsPerPage
+        endIndex = startIndex + self.kaomojiHelper.resultsPerPage
 
         if not self.mainUI.SearchLineEdit.text().strip():
-            self.searchResults = list(self.kaomojiHelper.kaomojis.keys())
-            displayed_results = self.searchResults[start_index:end_index]
+            results.clear()
+            results += searchList.items()
+            displayedResults = results[startIndex:endIndex]
         else:
-            if not self.searchResults:
-                displayed_results = []
+            if not results:
+                displayedResults = []
             else:
-                displayed_results = self.searchResults[start_index:end_index]
+                displayedResults = results[startIndex:endIndex]
 
-        self.searchModel.setHorizontalHeaderLabels(["Kaomoji", "Tags"])
-        
-        table_width = self.mainUI.SearchTableView.width()
-        kaomoji_width = int(table_width * 0.9)
-        tags_width = int(table_width * 0.1)
-        self.mainUI.SearchTableView.setColumnWidth(0, kaomoji_width)
-        self.mainUI.SearchTableView.setColumnWidth(1, tags_width)
+        model.setHorizontalHeaderLabels(["Kaomoji", "Tags"])
 
-        for kaomoji in displayed_results:
-            item = QStandardItem(kaomoji)
-            tags = ', '.join(self.kaomojiHelper.kaomojis[kaomoji]['tags'])
-            self.searchModel.appendRow([item, QStandardItem(tags)])
+        for kaomoji, tags in displayedResults:
+            tagsJoined = ', '.join(tags)
 
-    def updateStatus(self):
-        total_results = len(self.searchResults)
+            kaomojiItem = QStandardItem(kaomoji)
+            tagsItem = QStandardItem(tagsJoined)
+            kaomojiItem.setEditable(False)
+            tagsItem.setEditable(False)
 
-        if not self.searchResults:
-            if self.currentTab == Tabs.Search:
-                self.mainUI.SearchStatusLabel.setText('0-0 results | 0 (total)')
-            if self.currentTab == Tabs.RecentlyUsed:
-                self.mainUI.RecentlyUsedStatusLabel.setText('0-0 results | 0 (total)')
-            if self.currentTab == Tabs.Favorites:
-                self.mainUI.FavoritesStatusLabel.setText('0-0 results | 0 (total)')
+            model.appendRow([kaomojiItem, tagsItem])
+
+    def updateStatus(self, label: QLabel, currentPage: int, tab=None):
+        results = self.getResults(tab)
+        totalResults = len(results)
+
+        if not results:
+            label.setText('0-0 results | 0 (total)')
             return
 
-        start_index = (self.searchCurrentPage - 1) * self.kaomojiHelper.resultsPerPage + 1
-        end_index = min(start_index + self.kaomojiHelper.resultsPerPage - 1, total_results)
+        startIndex = (currentPage - 1) * self.kaomojiHelper.resultsPerPage + 1
+        endIndex = min(startIndex + self.kaomojiHelper.resultsPerPage - 1, totalResults)
+        label.setText(f'{startIndex}-{endIndex} results | {totalResults} (total)')
+    
+    def updateTab(self, tab=None):
+        label: QLabel
+        currentPage: int
 
-        if self.currentTab == Tabs.Search:
-            self.mainUI.SearchStatusLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
-        if self.currentTab == Tabs.RecentlyUsed:
-            self.mainUI.RecentlyUsedStatusLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
-        if self.currentTab == Tabs.Favorites:
-            self.mainUI.FavoritesStatusLabel.setText(f'{start_index}-{end_index} results | {total_results} (total)')
+        if tab is None:
+            tab = self.currentTab
+        if tab not in Tabs:
+            return
+        if tab == Tabs.Search:
+            label = self.mainUI.SearchStatusLabel
+            currentPage = self.searchCurrentPage
+        if tab == Tabs.RecentlyUsed:
+            label = self.mainUI.RecentlyUsedStatusLabel
+            currentPage = self.recentlyUsedCurrentPage
+        if tab == Tabs.Favorites:
+            label = self.mainUI.FavoritesStatusLabel
+            currentPage = self.favoritesCurrentPage
+
+        self.updateSearch(currentPage, tab)
+        self.updateStatus(label, currentPage, tab)
+
+    def setCurrentPage(self, page: int, tab=None):
+        if tab is None:
+            tab = self.currentTab
+        if tab == Tabs.Search:
+            self.searchCurrentPage = page
+        if tab == Tabs.RecentlyUsed:
+            self.recentlyUsedCurrentPage = page
+        if tab == Tabs.Favorites:
+            self.favoritesCurrentPage = page
+
+    def getCurrentPage(self, tab=None) -> int:
+        if tab is None:
+            tab = self.currentTab
+        currentPage: int
+        if tab == Tabs.Search:
+            currentPage = self.searchCurrentPage
+        if tab == Tabs.RecentlyUsed:
+            currentPage = self.recentlyUsedCurrentPage
+        if tab == Tabs.Favorites:
+           currentPage = self.favoritesCurrentPage
+        return currentPage
+
+    def getResults(self, tab=None) -> list[str]:
+        if tab is None:
+            tab = self.currentTab
+        results: list[str]
+        if tab == Tabs.Search:
+            results = self.searchResults
+        if tab == Tabs.RecentlyUsed:
+            results = self.recentlyUsedResults
+        if tab == Tabs.Favorites:
+           results = self.favoritesResults
+        return results
+
+    def getModel(self, tab=None) -> QStandardItemModel:
+        if tab is None:
+            tab = self.currentTab
+        model: QStandardItemModel
+        if tab == Tabs.Search:
+            model = self.searchModel
+        if tab == Tabs.RecentlyUsed:
+            model = self.recentlyUsedModel
+        if tab == Tabs.Favorites:
+           model = self.favoritesModel
+        return model
+
+    def getSearchList(self, tab=None) -> dict:
+        if tab is None:
+            tab = self.currentTab
+        if tab == Tabs.Search:
+            searchList = self.kaomojiHelper.kaomojis
+        if tab == Tabs.RecentlyUsed:
+            searchList = self.kaomojiHelper.recentKaomojis
+        if tab == Tabs.Favorites:
+            searchList = self.kaomojiHelper.favorites
+        return searchList
 
     def center(self):
         frameGeometry = self.frameGeometry()
