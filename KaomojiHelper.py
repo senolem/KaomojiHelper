@@ -18,7 +18,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from ui import Ui_Form
 from keybinds import Keybinds
 from tabs import Tabs
-from tableViewDelegate import TableViewDelegate
+from tableItemDelegate import TableItemDelegate
 from tabData import TabData
 
 class MainWindow(QWidget):
@@ -43,6 +43,11 @@ class MainWindow(QWidget):
         self.searchData.label = self.mainUI.SearchStatusLabel
         self.recentlyUsedData.label = self.mainUI.RecentlyUsedStatusLabel
         self.favoritesData.label = self.mainUI.FavoritesStatusLabel
+        
+        # Assign table views to tabs
+        self.searchData.tableView = self.mainUI.SearchTableView
+        self.recentlyUsedData.tableView = self.mainUI.RecentlyUsedTableView
+        self.favoritesData.tableView = self.mainUI.FavoritesTableView
 
         # For keyboard input and monitoring
         self.controller: keyboard.Controller = keyboard.Controller()
@@ -53,6 +58,7 @@ class MainWindow(QWidget):
 
         # Search model
         self.mainUI.SearchTableView.setModel(self.searchData.model)
+        self.mainUI.SearchVerticalLayout.addWidget(self.mainUI.SearchTableView)
         self.mainUI.SearchTableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.mainUI.RecentlyUsedTableView.setModel(self.recentlyUsedData.model)
         self.mainUI.RecentlyUsedTableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -60,14 +66,14 @@ class MainWindow(QWidget):
         self.mainUI.FavoritesTableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
         # Delegate for table view actions
-        self.tableViewDelegate = TableViewDelegate()
+        self.tableItemDelegate = TableItemDelegate()
         self.mainUI.SearchTableView.verticalHeader().hide()
-        self.mainUI.SearchTableView.setItemDelegate(self.tableViewDelegate)
+        self.mainUI.SearchTableView.setItemDelegateForColumn(0, self.tableItemDelegate)
         self.mainUI.RecentlyUsedTableView.verticalHeader().hide()
-        self.mainUI.RecentlyUsedTableView.setItemDelegate(self.tableViewDelegate)
+        self.mainUI.RecentlyUsedTableView.setItemDelegate(self.tableItemDelegate)
         self.mainUI.FavoritesTableView.verticalHeader().hide()
-        self.mainUI.FavoritesTableView.setItemDelegate(self.tableViewDelegate)
-        self.tableViewDelegate.kaomojiClicked.connect(self.insertKaomoji)
+        self.mainUI.FavoritesTableView.setItemDelegate(self.tableItemDelegate)
+        self.tableItemDelegate.kaomojiClicked.connect(self.insertKaomoji)
 
         # Connect UI
         self.mainUI.SearchLineEdit.textChanged.connect(self.searchChanged)
@@ -226,6 +232,8 @@ class MainWindow(QWidget):
             tagsItem.setEditable(False)
 
             data.model.appendRow([kaomojiItem, tagsItem])
+        
+        data.tableView.resizeRowsToContents()
 
     def updateStatus(self, data: TabData):
         results = data.results

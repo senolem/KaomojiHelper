@@ -1,8 +1,8 @@
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import (
-    QLabel
+    QLabel,
+    QTableView
 )
-from tabs import Tabs
 
 class TabData():
     def __init__(self, tab=None):
@@ -15,3 +15,4 @@ class TabData():
         self.tab = tab
         self.label: QLabel = QLabel()
         self.searchQuery = str()
+        self.tableView = QTableView()
