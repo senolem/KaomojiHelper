@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFontComboBox
     QKeySequenceEdit, QLabel, QLineEdit, QPushButton,
     QScrollArea, QSizePolicy, QTabWidget, QTableView,
     QToolButton, QVBoxLayout, QWidget)
-import resources
+import ui.resources as resources
 
 class Ui_Form(object):
     def setupUi(self, Form):

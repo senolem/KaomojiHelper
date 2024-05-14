@@ -15,19 +15,21 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal, QObject
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from ui import Ui_Form
-from keybinds import Keybinds
-from tabs import Tabs
-from tableItemDelegate import TableItemDelegate
-from tabData import TabData
+from ui.ui import Ui_Form
+from enums.keybinds import Keybinds
+from enums.tabs import Tabs
+from ui.tableItemDelegate import TableItemDelegate
+from ui.tabData import TabData
+from config import Config
 
 class MainWindow(QWidget):
     keyboardSignal = Signal(Keybinds) # signal for keybinds callbacks to be executed in main thread instead of keyboard monitoring thread
 
-    def __init__(self, parent=None):
+    def __init__(self, config: Config, parent=None):
         super(MainWindow, self).__init__(parent)
 
         # Data
+        self.config = config
         self.searchData = TabData(Tabs.Search)
         self.recentlyUsedData = TabData(Tabs.RecentlyUsed)
         self.favoritesData = TabData(Tabs.Favorites)
@@ -94,14 +96,15 @@ class MainWindow(QWidget):
         self.mainUI.FavoritesNextButton.clicked.connect(self.nextPage)
         self.mainUI.FavoritesLastButton.clicked.connect(self.lastPage)
 
-        self.currentTab = self.searchData
+        self.mainUI.TabsWidget.setCurrentIndex(self.config.default_tab)
+                
         self.updateTab(Tabs.Search)
         self.updateTab(Tabs.RecentlyUsed)
         self.updateTab(Tabs.Favorites)
         
     def load(self):
         kaomojis = {}
-        with open('kaomojis.json', 'r', encoding='utf-8') as file:
+        with open(self.config.kaomoji_set, 'r', encoding='utf-8') as file:
             data = json.load(file)
             for kaomoji, info in data.items():
                 tags = info.get('tags')
@@ -272,8 +275,9 @@ class MainWindow(QWidget):
         self.move(frameGeometry.topLeft())
 
 def main():
+    config = Config()
     app = QApplication(sys.argv)
-    mainWindow = MainWindow()
+    mainWindow = MainWindow(config)
     mainWindow.show()
     app.exec()
     mainWindow.center()
