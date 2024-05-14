@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'KaomojiHelperosWMFt.ui'
+## Form generated from reading UI file 'KaomojiHelperkaUzrl.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.4.3
 ##
@@ -81,7 +81,7 @@ class Ui_Form(object):
 
         self.SearchStatusLabel = QLabel(self.SearchTab)
         self.SearchStatusLabel.setObjectName(u"SearchStatusLabel")
-        self.SearchStatusLabel.setMinimumSize(QSize(180, 24))
+        self.SearchStatusLabel.setMinimumSize(QSize(150, 24))
         self.SearchStatusLabel.setAlignment(Qt.AlignCenter)
 
         self.SearchHorizontalLayout.addWidget(self.SearchStatusLabel)
@@ -139,7 +139,7 @@ class Ui_Form(object):
 
         self.RecentlyUsedStatusLabel = QLabel(self.RecentlyUsedTab)
         self.RecentlyUsedStatusLabel.setObjectName(u"RecentlyUsedStatusLabel")
-        self.RecentlyUsedStatusLabel.setMinimumSize(QSize(180, 24))
+        self.RecentlyUsedStatusLabel.setMinimumSize(QSize(150, 24))
         self.RecentlyUsedStatusLabel.setAlignment(Qt.AlignCenter)
 
         self.RecentlyUsedHorizontalLayout.addWidget(self.RecentlyUsedStatusLabel)
@@ -193,7 +193,7 @@ class Ui_Form(object):
 
         self.FavoritesStatusLabel = QLabel(self.FavoritesTab)
         self.FavoritesStatusLabel.setObjectName(u"FavoritesStatusLabel")
-        self.FavoritesStatusLabel.setMinimumSize(QSize(180, 24))
+        self.FavoritesStatusLabel.setMinimumSize(QSize(150, 24))
         self.FavoritesStatusLabel.setAlignment(Qt.AlignCenter)
 
         self.FavoritesHorizontalLayout.addWidget(self.FavoritesStatusLabel)
@@ -262,6 +262,10 @@ class Ui_Form(object):
         self.DefaultTabHorizontalLayout.addWidget(self.DefaultTabLabel)
 
         self.DefaultTabComboBox = QComboBox(self.GeneralGroupBox)
+        self.DefaultTabComboBox.addItem("")
+        self.DefaultTabComboBox.addItem("")
+        self.DefaultTabComboBox.addItem("")
+        self.DefaultTabComboBox.addItem("")
         self.DefaultTabComboBox.setObjectName(u"DefaultTabComboBox")
 
         self.DefaultTabHorizontalLayout.addWidget(self.DefaultTabComboBox)
@@ -472,7 +476,7 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
 
-        self.TabsWidget.setCurrentIndex(0)
+        self.TabsWidget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(Form)
@@ -504,6 +508,11 @@ class Ui_Form(object):
         self.KaomojiSetLabel.setText(QCoreApplication.translate("Form", u"Kaomoji set", None))
         self.KaomojiSetButton.setText(QCoreApplication.translate("Form", u"...", None))
         self.DefaultTabLabel.setText(QCoreApplication.translate("Form", u"Default tab", None))
+        self.DefaultTabComboBox.setItemText(0, QCoreApplication.translate("Form", u"Search", None))
+        self.DefaultTabComboBox.setItemText(1, QCoreApplication.translate("Form", u"Recently Used", None))
+        self.DefaultTabComboBox.setItemText(2, QCoreApplication.translate("Form", u"Favorites", None))
+        self.DefaultTabComboBox.setItemText(3, QCoreApplication.translate("Form", u"Settings", None))
+
         self.LaunchAtStartupCheckbox.setText(QCoreApplication.translate("Form", u"Launch at startup", None))
         self.ClearSearchEntryCheckbox.setText(QCoreApplication.translate("Form", u"Clear search entry upon clicking on a kaomoji", None))
         self.AppearanceGroupBox.setTitle(QCoreApplication.translate("Form", u"Appearance", None))

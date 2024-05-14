@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QFrame,
     QGraphicsEffect,
+    QStyleFactory,
     QHeaderView
 )
 from PySide6.QtCore import Qt, Signal, QObject
@@ -40,6 +41,14 @@ class MainWindow(QWidget):
         self.mainUI = Ui_Form()
         self.searchData.list = self.load()
         self.mainUI.setupUi(self)
+        default_tab = self.config.config.getint('GENERAL', 'default_tab')
+        self.mainUI.TabsWidget.setCurrentIndex(default_tab)
+        self.tabChanged(default_tab)
+        
+        # Populate theme combobox
+        styles = QStyleFactory.keys()
+        for style in styles:
+            self.mainUI.ThemeComboBox.addItem(style)
         
         # Assign UI Labels to tabs
         self.searchData.label = self.mainUI.SearchStatusLabel
@@ -95,16 +104,30 @@ class MainWindow(QWidget):
         self.mainUI.FavoritesPreviousButton.clicked.connect(self.previousPage)
         self.mainUI.FavoritesNextButton.clicked.connect(self.nextPage)
         self.mainUI.FavoritesLastButton.clicked.connect(self.lastPage)
-
-        self.mainUI.TabsWidget.setCurrentIndex(self.config.default_tab)
+        
+        #self.mainUI.KaomojiSetButton.clicked.connect(self.updateEmojiSet)
+        self.mainUI.DefaultTabComboBox.currentIndexChanged.connect(self.updateDefaultTab)
+        self.mainUI.LaunchAtStartupCheckbox.clicked.connect(self.updateLaunchAtStartup)
+        self.mainUI.ClearSearchEntryCheckbox.clicked.connect(self.updateClearSearchEntry)
+        self.mainUI.ThemeComboBox.currentIndexChanged.connect(self.updateTheme)
+        #self.mainUI.FontComboBox.currentFontChanged.connect(self.updateFont)
+        #self.mainUI.FontColorButton.clicked.connect(self.updateFontColor)
+        ##self.mainUI.ShowSoundButton.clicked.connect(self.updateShowSound)
+        ##self.mainUI.HideSoundButton.clicked.connect(self.updateHideSound)
+        #self.mainUI.ShowWindowKeySequence.keySequenceChanged.connect(self.updateShowWindow)
+        #self.mainUI.HideWindowKeySequence.keySequenceChanged.connect(self.updateHideWindow)
+        #self.mainUI.PreviousPageKeySequence.keySequenceChanged.connect(self.updatePreviousPage)
+        #self.mainUI.NextPageKeySequence.keySequenceChanged.connect(self.updateNextPage)
                 
         self.updateTab(Tabs.Search)
         self.updateTab(Tabs.RecentlyUsed)
         self.updateTab(Tabs.Favorites)
+        self.updateSettings()
         
     def load(self):
         kaomojis = {}
-        with open(self.config.kaomoji_set, 'r', encoding='utf-8') as file:
+
+        with open(self.config.config.get('GENERAL', 'kaomoji_set'), 'r', encoding='utf-8') as file:
             data = json.load(file)
             for kaomoji, info in data.items():
                 tags = info.get('tags')
@@ -266,6 +289,39 @@ class MainWindow(QWidget):
 
         self.updateSearch(data)
         self.updateStatus(data)
+    
+    def updateSettings(self):
+        # General
+        self.mainUI.KaomojiSetLineEdit.setText(self.config.config.get('GENERAL', 'kaomoji_set'))
+        self.mainUI.DefaultTabComboBox.setCurrentIndex(self.config.config.getint('GENERAL', 'default_tab'))
+        self.mainUI.LaunchAtStartupCheckbox.setChecked(self.config.config.getboolean('GENERAL', 'launch_at_startup'))
+        self.mainUI.ClearSearchEntryCheckbox.setChecked(self.config.config.getboolean('GENERAL', 'clear_search_entry_upon_inserting'))
+        
+        # Appearance
+        self.mainUI.ThemeComboBox.setCurrentIndex(self.config.config.getint('APPEARANCE', 'theme'))
+        self.mainUI.FontComboBox.setCurrentFont(self.config.config.get('APPEARANCE', 'font'))
+        
+        # Miscellaneous
+        self.mainUI.ShowSoundLineEdit.setText(self.config.config.get('MISCELLANEOUS', 'show_sound'))
+        self.mainUI.HideSoundLineEdit.setText(self.config.config.get('MISCELLANEOUS', 'hide_sound'))
+
+        # Keybinds
+        self.mainUI.ShowWindowKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'show_window'))
+        self.mainUI.HideWindowKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'hide_window'))
+        self.mainUI.PreviousPageKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'previous_page'))
+        self.mainUI.NextPageKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'next_page'))
+
+    def updateDefaultTab(self, index):
+        self.config.setValue('GENERAL', 'default_tab', index)
+
+    def updateLaunchAtStartup(self, state):
+        self.config.setValue('GENERAL', 'launch_at_startup', state)
+    
+    def updateClearSearchEntry(self, state):
+        self.config.setValue('GENERAL', 'clear_search_entry_upon_inserting', state)
+
+    def updateTheme(self, index):
+        self.config.setValue('APPEARANCE', 'theme', index)
 
     def center(self):
         frameGeometry = self.frameGeometry()

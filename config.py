@@ -12,25 +12,6 @@ class Config:
             self.config = configparser.ConfigParser()
             self.createDefaultConfig()
 
-        # Parsed config values
-        self.kaomoji_set = self.config['GENERAL']['kaomoji_set']
-        self.default_tab = self.config.getint('GENERAL', 'default_tab')
-        self.launch_at_startup = self.config.getboolean('GENERAL', 'launch_at_startup')
-        self.clear_search_entry_upon_inserting = self.config.getboolean('GENERAL', 'clear_search_entry_upon_inserting')
-        
-        self.theme = self.config['APPEARANCE']['theme']
-        self.font = self.config['APPEARANCE']['theme']
-        self.font_color = self.config['APPEARANCE']['theme']
-        
-        self.show_sound = self.config['MISCELLANEOUS']['show_sound']
-        self.hide_sound = self.config['MISCELLANEOUS']['hide_sound']
-        
-        self.show_window = self.config['KEYBINDS']['show_window']
-        self.hide_window = self.config['KEYBINDS']['hide_window']
-        self.previous_page = self.config['KEYBINDS']['previous_page']
-        self.next_page = self.config['KEYBINDS']['next_page']
-        
-
     def loadConfig(self):
         write_needed = False
         self.config = configparser.ConfigParser()
@@ -58,7 +39,8 @@ class Config:
     def setValue(self, section, key, value):
         if not self.config.has_section(section):
             self.config.add_section(section)
-        self.config.set(section, key, value)
+        self.config.set(section, key, str(value))
+        self.writeConfig()
 
     def createDefaultConfig(self):
         with open(self.filename, 'w') as f:
@@ -69,11 +51,11 @@ class Config:
         config['GENERAL'] = {
             'kaomoji_set': 'kaomojis.json',
             'default_tab': 0,
-            'launch_at_startup': True,
+            'launch_at_startup': False,
             'clear_search_entry_upon_inserting': False
         }
         config['APPEARANCE'] = {
-            'theme': '',
+            'theme': 0,
             'font': '',
             'font_color': '#FFFFFF'
         }
