@@ -14,13 +14,14 @@ from PySide6.QtWidgets import (
     QStyleFactory,
     QHeaderView
 )
-from PySide6.QtCore import Qt, Signal, QObject
-from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont, QKeySequence
 from ui.ui import Ui_Form
 from enums.keybinds import Keybinds
 from enums.tabs import Tabs
 from ui.tableItemDelegate import TableItemDelegate
 from ui.tabData import TabData
+from ui.scrollEventFilter import ScrollEventFilter
 from config import Config
 
 class MainWindow(QWidget):
@@ -49,6 +50,12 @@ class MainWindow(QWidget):
         styles = QStyleFactory.keys()
         for style in styles:
             self.mainUI.ThemeComboBox.addItem(style)
+            
+        # Ignore scroll event on combobox
+        self.scrollEventFilter = ScrollEventFilter()
+        self.mainUI.FontComboBox.installEventFilter(self.scrollEventFilter)
+        self.mainUI.ThemeComboBox.installEventFilter(self.scrollEventFilter)
+        self.mainUI.DefaultTabComboBox.installEventFilter(self.scrollEventFilter)
         
         # Assign UI Labels to tabs
         self.searchData.label = self.mainUI.SearchStatusLabel
@@ -110,14 +117,14 @@ class MainWindow(QWidget):
         self.mainUI.LaunchAtStartupCheckbox.clicked.connect(self.updateLaunchAtStartup)
         self.mainUI.ClearSearchEntryCheckbox.clicked.connect(self.updateClearSearchEntry)
         self.mainUI.ThemeComboBox.currentIndexChanged.connect(self.updateTheme)
-        #self.mainUI.FontComboBox.currentFontChanged.connect(self.updateFont)
+        self.mainUI.FontComboBox.currentFontChanged.connect(self.updateFont)
         #self.mainUI.FontColorButton.clicked.connect(self.updateFontColor)
         ##self.mainUI.ShowSoundButton.clicked.connect(self.updateShowSound)
         ##self.mainUI.HideSoundButton.clicked.connect(self.updateHideSound)
-        #self.mainUI.ShowWindowKeySequence.keySequenceChanged.connect(self.updateShowWindow)
-        #self.mainUI.HideWindowKeySequence.keySequenceChanged.connect(self.updateHideWindow)
-        #self.mainUI.PreviousPageKeySequence.keySequenceChanged.connect(self.updatePreviousPage)
-        #self.mainUI.NextPageKeySequence.keySequenceChanged.connect(self.updateNextPage)
+        self.mainUI.ShowWindowKeySequence.keySequenceChanged.connect(self.updateShowWindow)
+        self.mainUI.HideWindowKeySequence.keySequenceChanged.connect(self.updateHideWindow)
+        self.mainUI.PreviousPageKeySequence.keySequenceChanged.connect(self.updatePreviousPage)
+        self.mainUI.NextPageKeySequence.keySequenceChanged.connect(self.updateNextPage)
                 
         self.updateTab(Tabs.Search)
         self.updateTab(Tabs.RecentlyUsed)
@@ -139,6 +146,9 @@ class MainWindow(QWidget):
 
     def insertKaomoji(self, index):
         kaomoji = self.currentTab.model.itemFromIndex(index).text()
+        if self.config.config.getboolean('GENERAL', 'clear_search_entry_upon_inserting') == True:
+            self.currentTab.searchQuery = ''
+            self.mainUI.SearchLineEdit.setText('')
     
         self.showMinimized()
         self.controller.type(kaomoji)
@@ -221,6 +231,9 @@ class MainWindow(QWidget):
             self.currentTab = self.favoritesData
         if currentTab == Tabs.Settings:
             self.currentTab = self.settingsData
+            self.mainUI.SearchLineEdit.setEnabled(False)
+        else:
+            self.mainUI.SearchLineEdit.setEnabled(True)
         self.mainUI.SearchLineEdit.setText(self.currentTab.searchQuery)
 
     def search(self, query: str):
@@ -247,17 +260,18 @@ class MainWindow(QWidget):
             else:
                 displayedResults = data.results[startIndex:endIndex]
 
-        data.model.setHorizontalHeaderLabels(["Kaomoji", "Tags"])
+        data.model.setHorizontalHeaderLabels(["Kaomoji"])
+        font = QFont(self.config.config.get('APPEARANCE', 'font'), 12)
 
         for kaomoji, tags in displayedResults:
             tagsJoined = ', '.join(tags)
 
             kaomojiItem = QStandardItem(kaomoji)
-            tagsItem = QStandardItem(tagsJoined)
+            kaomojiItem.setFont(font)
             kaomojiItem.setEditable(False)
-            tagsItem.setEditable(False)
 
-            data.model.appendRow([kaomojiItem, tagsItem])
+            data.model.appendRow([kaomojiItem])
+            kaomojiItem.setToolTip(tagsJoined)
         
         data.tableView.resizeRowsToContents()
 
@@ -282,10 +296,12 @@ class MainWindow(QWidget):
             return
         if tab == Tabs.Search:
             data = self.searchData
-        if tab == Tabs.RecentlyUsed:
+        elif tab == Tabs.RecentlyUsed:
             data = self.recentlyUsedData
-        if tab == Tabs.Favorites:
+        elif tab == Tabs.Favorites:
             data = self.favoritesData
+        else:
+            return
 
         self.updateSearch(data)
         self.updateStatus(data)
@@ -322,6 +338,21 @@ class MainWindow(QWidget):
 
     def updateTheme(self, index):
         self.config.setValue('APPEARANCE', 'theme', index)
+    
+    def updateFont(self, font: QFont):
+        self.config.setValue('APPEARANCE', 'font', font.family())
+
+    def updateShowWindow(self, keybind: QKeySequence):
+        self.config.setValue('KEYBINDS', 'show_window', keybind.toString())
+
+    def updateHideWindow(self, keybind: QKeySequence):
+        self.config.setValue('KEYBINDS', 'hide_window', keybind.toString())
+
+    def updatePreviousPage(self, keybind: QKeySequence):
+        self.config.setValue('KEYBINDS', 'previous_page', keybind.toString())
+
+    def updateNextPage(self, keybind: QKeySequence):
+        self.config.setValue('KEYBINDS', 'next_page', keybind.toString())
 
     def center(self):
         frameGeometry = self.frameGeometry()
@@ -333,6 +364,12 @@ class MainWindow(QWidget):
 def main():
     config = Config()
     app = QApplication(sys.argv)
+
+    styles = QStyleFactory.keys()
+    selectedStyle = int(config.config.get('APPEARANCE', 'theme'))
+    if selectedStyle < len(styles):
+        app.setStyle(styles[selectedStyle])
+
     mainWindow = MainWindow(config)
     mainWindow.show()
     app.exec()
