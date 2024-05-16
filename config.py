@@ -7,12 +7,12 @@ class Config:
         # Config file
         self.filename = filename
         if os.path.exists(filename):
-            self.loadConfig()
+            self.load()
         else:
             self.config = configparser.ConfigParser()
             self.createDefaultConfig()
 
-    def loadConfig(self):
+    def load(self):
         write_needed = False
         self.config = configparser.ConfigParser()
         self.config.read(self.filename)
@@ -29,18 +29,24 @@ class Config:
         if write_needed:
             self.writeConfig()
 
-    def writeConfig(self):
+    def write(self):
         with open(self.filename, 'w') as f:
             self.config.write(f)
 
-    def getValue(self, section, key):
+    def get(self, section, key):
         return self.config.get(section, key)
+    
+    def getBoolean(self, section, key):
+        return self.config.getboolean(section, key)
 
-    def setValue(self, section, key, value):
+    def getInt(self, section, key):
+        return self.config.getint(section, key)
+
+    def set(self, section, key, value):
         if not self.config.has_section(section):
             self.config.add_section(section)
         self.config.set(section, key, str(value))
-        self.writeConfig()
+        self.write()
 
     def createDefaultConfig(self):
         with open(self.filename, 'w') as f:

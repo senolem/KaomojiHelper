@@ -16,7 +16,8 @@ from ui.scrollEventFilter import ScrollEventFilter
 from enums.keybinds import Keybinds
 from enums.tabs import Tabs
 from config import Config
-from keyboardListener import KeyboardListener
+from keybinder import QtKeyBinder
+from typing import Callable
 
 class MainWindow(QWidget):
     def __init__(self, config: Config, parent=None):
@@ -34,7 +35,7 @@ class MainWindow(QWidget):
         self.mainUI = Ui_Form()
         self.searchData.list = self.load()
         self.mainUI.setupUi(self)
-        default_tab = self.config.config.getint('GENERAL', 'default_tab')
+        default_tab = self.config.getInt('GENERAL', 'default_tab')
         self.mainUI.TabsWidget.setCurrentIndex(default_tab)
         self.tabChanged(default_tab)
         
@@ -59,11 +60,9 @@ class MainWindow(QWidget):
         self.recentlyUsedData.tableView = self.mainUI.RecentlyUsedTableView
         self.favoritesData.tableView = self.mainUI.FavoritesTableView
 
-        # For keyboard input and monitoring
+        # Setup keyboard controller and keybinds
         self.controller = keyboard.Controller()
-        self.keyboardListener = KeyboardListener()
-        self.keyboardListener.keyboardSignal.connect(self.keybindsCallback)
-        self.keyboardListener.start()
+        self.keybinder = QtKeyBinder(win_id=0)
 
         # Search model
         self.mainUI.SearchTableView.setModel(self.searchData.model)
@@ -112,10 +111,10 @@ class MainWindow(QWidget):
         #self.mainUI.FontColorButton.clicked.connect(self.updateFontColor)
         ##self.mainUI.ShowSoundButton.clicked.connect(self.updateShowSound)
         ##self.mainUI.HideSoundButton.clicked.connect(self.updateHideSound)
-        self.mainUI.ShowWindowKeySequence.keySequenceChanged.connect(self.updateShowWindow)
-        self.mainUI.HideWindowKeySequence.keySequenceChanged.connect(self.updateHideWindow)
-        self.mainUI.PreviousPageKeySequence.keySequenceChanged.connect(self.updatePreviousPage)
-        self.mainUI.NextPageKeySequence.keySequenceChanged.connect(self.updateNextPage)
+        self.mainUI.ShowWindowKeySequence.keySequenceChanged.connect(lambda keySequence, name='show_window': self.updateKeybind(keySequence, name, self.show))
+        self.mainUI.HideWindowKeySequence.keySequenceChanged.connect(lambda keySequence, name='hide_window': self.updateKeybind(keySequence, name, self.hide))
+        self.mainUI.PreviousPageKeySequence.keySequenceChanged.connect(lambda keySequence, name='previous_page': self.updateKeybind(keySequence, name, self.previousPage))
+        self.mainUI.NextPageKeySequence.keySequenceChanged.connect(lambda keySequence, name='next_page': self.updateKeybind(keySequence, name, self.nextPage))
                 
         self.updateTab(Tabs.Search)
         self.updateTab(Tabs.RecentlyUsed)
@@ -125,7 +124,7 @@ class MainWindow(QWidget):
     def load(self):
         kaomojis = {}
 
-        with open(self.config.config.get('GENERAL', 'kaomoji_set'), 'r', encoding='utf-8') as file:
+        with open(self.config.get('GENERAL', 'kaomoji_set'), 'r', encoding='utf-8') as file:
             data = json.load(file)
             for kaomoji, info in data.items():
                 tags = info.get('tags')
@@ -137,7 +136,7 @@ class MainWindow(QWidget):
 
     def insertKaomoji(self, index):
         kaomoji = self.currentTab.model.itemFromIndex(index).text()
-        if self.config.config.getboolean('GENERAL', 'clear_search_entry_upon_inserting') == True:
+        if self.config.getBoolean('GENERAL', 'clear_search_entry_upon_inserting') == True:
             self.currentTab.searchQuery = ''
             self.mainUI.SearchLineEdit.setText('')
     
@@ -151,38 +150,6 @@ class MainWindow(QWidget):
         recentKaomojis = dict(list(recentKaomojis.items())[-self.recentlyUsedData.limit:])
         self.recentlyUsedData.list = recentKaomojis
         self.updateTab(Tabs.RecentlyUsed)
-
-    # def onRelease(self, key: keyboard.Key):
-    #     if hasattr(key, 'char'):
-    #         if (key.char == 'k'):
-    #             self.keyboardSignal.emit(Keybinds.Show)
-    #     if key == keyboard.Key.esc:
-    #         self.keyboardSignal.emit(Keybinds.Hide)
-    #     if key == keyboard.Key.left:
-    #         self.keyboardSignal.emit(Keybinds.Prev)
-    #     if key == keyboard.Key.right:
-    #         self.keyboardSignal.emit(Keybinds.Next)
-
-    def keybindsCallback(self, keysPressed: list[int]):
-        for keycode in keysPressed:
-            print(keycode)
-            qtkey = Qt.Key(keycode)
-            qtkeysequence = QKeySequence(qtkey)
-            print(qtkey)
-            print(qtkeysequence.toString())
-        # if key == Keybinds.Show:
-        #     self.show()
-        # if key == Keybinds.Hide:
-        #     self.hide()
-        # if key == Keybinds.Prev:
-        #     self.previousPage()
-        # if key == Keybinds.Next:
-        #     self.nextPage()
-        # if key == Keybinds.Debug:
-        #     print(self.config.config.get('KEYBINDS', 'show_window'))
-        #     print(self.config.config.get('KEYBINDS', 'hide_window'))
-        #     print(keyboard.HotKey.parse(self.config.config.get('KEYBINDS', 'show_window')))
-        #     print(keyboard.HotKey.parse(self.config.config.get('KEYBINDS', 'hide_window')))
 
     def previousPage(self):
         currentPage = self.currentTab.currentPage
@@ -263,7 +230,7 @@ class MainWindow(QWidget):
                 displayedResults = data.results[startIndex:endIndex]
 
         data.model.setHorizontalHeaderLabels(["Kaomoji"])
-        font = QFont(self.config.config.get('APPEARANCE', 'font'), 12)
+        font = QFont(self.config.get('APPEARANCE', 'font'), 12)
 
         for kaomoji, tags in displayedResults:
             tagsJoined = ', '.join(tags)
@@ -310,51 +277,48 @@ class MainWindow(QWidget):
     
     def updateSettings(self):
         # General
-        self.mainUI.KaomojiSetLineEdit.setText(self.config.config.get('GENERAL', 'kaomoji_set'))
-        self.mainUI.DefaultTabComboBox.setCurrentIndex(self.config.config.getint('GENERAL', 'default_tab'))
-        self.mainUI.LaunchAtStartupCheckbox.setChecked(self.config.config.getboolean('GENERAL', 'launch_at_startup'))
-        self.mainUI.ClearSearchEntryCheckbox.setChecked(self.config.config.getboolean('GENERAL', 'clear_search_entry_upon_inserting'))
+        self.mainUI.KaomojiSetLineEdit.setText(self.config.get('GENERAL', 'kaomoji_set'))
+        self.mainUI.DefaultTabComboBox.setCurrentIndex(self.config.getInt('GENERAL', 'default_tab'))
+        self.mainUI.LaunchAtStartupCheckbox.setChecked(self.config.getBoolean('GENERAL', 'launch_at_startup'))
+        self.mainUI.ClearSearchEntryCheckbox.setChecked(self.config.getBoolean('GENERAL', 'clear_search_entry_upon_inserting'))
         
         # Appearance
-        self.mainUI.ThemeComboBox.setCurrentIndex(self.config.config.getint('APPEARANCE', 'theme'))
-        self.mainUI.FontComboBox.setCurrentFont(self.config.config.get('APPEARANCE', 'font'))
+        self.mainUI.ThemeComboBox.setCurrentIndex(self.config.getInt('APPEARANCE', 'theme'))
+        self.mainUI.FontComboBox.setCurrentFont(self.config.get('APPEARANCE', 'font'))
         
         # Miscellaneous
-        self.mainUI.ShowSoundLineEdit.setText(self.config.config.get('MISCELLANEOUS', 'show_sound'))
-        self.mainUI.HideSoundLineEdit.setText(self.config.config.get('MISCELLANEOUS', 'hide_sound'))
+        self.mainUI.ShowSoundLineEdit.setText(self.config.get('MISCELLANEOUS', 'show_sound'))
+        self.mainUI.HideSoundLineEdit.setText(self.config.get('MISCELLANEOUS', 'hide_sound'))
 
         # Keybinds
-        self.mainUI.ShowWindowKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'show_window'))
-        self.mainUI.HideWindowKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'hide_window'))
-        self.mainUI.PreviousPageKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'previous_page'))
-        self.mainUI.NextPageKeySequence.setKeySequence(self.config.config.get('KEYBINDS', 'next_page'))
+        self.mainUI.ShowWindowKeySequence.setKeySequence(self.config.get('KEYBINDS', 'show_window'))
+        self.mainUI.HideWindowKeySequence.setKeySequence(self.config.get('KEYBINDS', 'hide_window'))
+        self.mainUI.PreviousPageKeySequence.setKeySequence(self.config.get('KEYBINDS', 'previous_page'))
+        self.mainUI.NextPageKeySequence.setKeySequence(self.config.get('KEYBINDS', 'next_page'))
 
     def updateDefaultTab(self, index):
-        self.config.setValue('GENERAL', 'default_tab', index)
+        self.config.set('GENERAL', 'default_tab', index)
 
     def updateLaunchAtStartup(self, state):
-        self.config.setValue('GENERAL', 'launch_at_startup', state)
+        self.config.set('GENERAL', 'launch_at_startup', state)
     
     def updateClearSearchEntry(self, state):
-        self.config.setValue('GENERAL', 'clear_search_entry_upon_inserting', state)
+        self.config.set('GENERAL', 'clear_search_entry_upon_inserting', state)
 
     def updateTheme(self, index):
-        self.config.setValue('APPEARANCE', 'theme', index)
+        self.config.set('APPEARANCE', 'theme', index)
     
     def updateFont(self, font: QFont):
-        self.config.setValue('APPEARANCE', 'font', font.family())
+        self.config.set('APPEARANCE', 'font', font.family())
 
-    def updateShowWindow(self, keybind: QKeySequence):
-        self.config.setValue('KEYBINDS', 'show_window', keybind.toString())
-
-    def updateHideWindow(self, keybind: QKeySequence):
-        self.config.setValue('KEYBINDS', 'hide_window', keybind.toString())
-
-    def updatePreviousPage(self, keybind: QKeySequence):
-        self.config.setValue('KEYBINDS', 'previous_page', keybind.toString())
-
-    def updateNextPage(self, keybind: QKeySequence):
-        self.config.setValue('KEYBINDS', 'next_page', keybind.toString())
+    def updateKeybind(self, keySequence: QKeySequence, name: str, callback: Callable):
+        previousKeybind = self.config.get('KEYBINDS', name)
+        newKeybind = keySequence.toString()
+        self.config.set('KEYBINDS', name, newKeybind)
+        if previousKeybind:
+            self.keybinder.unregister_hotkey(previousKeybind)
+        if newKeybind:
+            self.keybinder.register_hotkey(newKeybind, callback)
 
     def center(self):
         frameGeometry = self.frameGeometry()
@@ -368,7 +332,7 @@ def main():
     app = QApplication(sys.argv)
 
     styles = QStyleFactory.keys()
-    selectedStyle = int(config.config.get('APPEARANCE', 'theme'))
+    selectedStyle = int(config.get('APPEARANCE', 'theme'))
     if selectedStyle < len(styles):
         app.setStyle(styles[selectedStyle])
 
