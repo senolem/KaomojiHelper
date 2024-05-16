@@ -4,29 +4,21 @@ from pynput import keyboard
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
-    QVBoxLayout,
-    QLineEdit,
-    QPushButton,
-    QLabel,
-    QHBoxLayout,
-    QFrame,
-    QGraphicsEffect,
     QStyleFactory,
     QHeaderView
 )
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont, QKeySequence
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItem, QFont, QKeySequence
 from ui.ui import Ui_Form
-from enums.keybinds import Keybinds
-from enums.tabs import Tabs
 from ui.tableItemDelegate import TableItemDelegate
 from ui.tabData import TabData
 from ui.scrollEventFilter import ScrollEventFilter
+from enums.keybinds import Keybinds
+from enums.tabs import Tabs
 from config import Config
+from keyboardListener import KeyboardListener
 
 class MainWindow(QWidget):
-    keyboardSignal = Signal(Keybinds) # signal for keybinds callbacks to be executed in main thread instead of keyboard monitoring thread
-
     def __init__(self, config: Config, parent=None):
         super(MainWindow, self).__init__(parent)
 
@@ -68,11 +60,10 @@ class MainWindow(QWidget):
         self.favoritesData.tableView = self.mainUI.FavoritesTableView
 
         # For keyboard input and monitoring
-        self.controller: keyboard.Controller = keyboard.Controller()
-        self.listener: keyboard.Listener = keyboard.Listener(onRelease=self.onRelease)
-        self.listener.start()
-
-        self.keyboardSignal.connect(self.keybindsCallback)
+        self.controller = keyboard.Controller()
+        self.keyboardListener = KeyboardListener()
+        self.keyboardListener.keyboardSignal.connect(self.keybindsCallback)
+        self.keyboardListener.start()
 
         # Search model
         self.mainUI.SearchTableView.setModel(self.searchData.model)
@@ -161,26 +152,37 @@ class MainWindow(QWidget):
         self.recentlyUsedData.list = recentKaomojis
         self.updateTab(Tabs.RecentlyUsed)
 
-    def onRelease(self, key: keyboard.Key):
-        if hasattr(key, 'char'):
-            if (key.char == 'k'):
-                self.keyboardSignal.emit(Keybinds.Show)
-        if key == keyboard.Key.esc:
-            self.keyboardSignal.emit(Keybinds.Hide)
-        if key == keyboard.Key.left:
-            self.keyboardSignal.emit(Keybinds.Prev)
-        if key == keyboard.Key.right:
-            self.keyboardSignal.emit(Keybinds.Next)
+    # def onRelease(self, key: keyboard.Key):
+    #     if hasattr(key, 'char'):
+    #         if (key.char == 'k'):
+    #             self.keyboardSignal.emit(Keybinds.Show)
+    #     if key == keyboard.Key.esc:
+    #         self.keyboardSignal.emit(Keybinds.Hide)
+    #     if key == keyboard.Key.left:
+    #         self.keyboardSignal.emit(Keybinds.Prev)
+    #     if key == keyboard.Key.right:
+    #         self.keyboardSignal.emit(Keybinds.Next)
 
-    def keybindsCallback(self, key: Keybinds):
-        if key == Keybinds.Show:
-            self.show()
-        if key == Keybinds.Hide:
-            self.hide()
-        if key == Keybinds.Prev:
-            self.previousPage()
-        if key == Keybinds.Next:
-            self.nextPage()
+    def keybindsCallback(self, keysPressed: list[int]):
+        for keycode in keysPressed:
+            print(keycode)
+            qtkey = Qt.Key(keycode)
+            qtkeysequence = QKeySequence(qtkey)
+            print(qtkey)
+            print(qtkeysequence.toString())
+        # if key == Keybinds.Show:
+        #     self.show()
+        # if key == Keybinds.Hide:
+        #     self.hide()
+        # if key == Keybinds.Prev:
+        #     self.previousPage()
+        # if key == Keybinds.Next:
+        #     self.nextPage()
+        # if key == Keybinds.Debug:
+        #     print(self.config.config.get('KEYBINDS', 'show_window'))
+        #     print(self.config.config.get('KEYBINDS', 'hide_window'))
+        #     print(keyboard.HotKey.parse(self.config.config.get('KEYBINDS', 'show_window')))
+        #     print(keyboard.HotKey.parse(self.config.config.get('KEYBINDS', 'hide_window')))
 
     def previousPage(self):
         currentPage = self.currentTab.currentPage

@@ -5,3 +5,4 @@ class Keybinds(Enum):
     Hide = 1
     Prev = 2
     Next = 3
+    Debug = 4
